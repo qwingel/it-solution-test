@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}Случайная цитата{% endblock %}
+
+{% block content %}
+    {% if quote %}
+        <div class="quote" id="quote-{{ quote.id }}">
+            <blockquote>{{ quote.text }}</blockquote>
+            <p class="source">— {{ quote.source.name }} ({{ quote.source.get_from_where_display }})</p>
+
+            <div class="stats">
+                <span>Просмотров: {{ quote.views }}</span>
+                <span>Лайков: <span id="likes-count">{{ quote.likes }}</span></span>
+                <span>Дизлайков: <span id="dislikes-count">{{ quote.dislikes }}</span></span>
+            </div>
+
+            <div class="actions">
+                <button onclick="rateQuote({{ quote.id }}, 'like')" class="like-btn">
+                    Лайк
+                </button>
+                <button onclick="rateQuote({{ quote.id }}, 'dislike')" class="dislike-btn">
+                    Дизлайк
+                </button>
+            </div>
+        </div>
+    {% else %}
+        <div class="no-quotes">
+            <p>Цитат пока нет. <a href="{% url 'add_quote' %}">Добавьте первую!</a></p>
+        </div>
+    {% endif %}
+
+    <div class="refresh">
+        <a href="{% url 'random_quote' %}">Новая случайная цитата</a>
+    </div>
+
+    <script>
+    function rateQuote(quoteId, action) {
+        const likeBtn = document.querySelector('.like-btn');
+        const dislikeBtn = document.querySelector('.dislike-btn');
+        likeBtn.disabled = true;
+        dislikeBtn.disabled = true;
+
+        // AJAX
+        fetch('{% url "rate_quote" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            body: new URLSearchParams({
+                'quote_id': quoteId,
+                'action': action
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                document.getElementById('likes-count').textContent = data.likes;
+                document.getElementById('dislikes-count').textContent = data.dislikes;
+            }
+        })
+        .catch(error => {
+            alert('Ошибка сети: ' + error);
+        })
+        .finally(() => {
+            likeBtn.disabled = false;
+            dislikeBtn.disabled = false;
+            likeBtn.textContent = 'Лайк';
+            dislikeBtn.textContent = 'Дизлайк';
+        });
+    }
+    </script>
+{% endblock %}

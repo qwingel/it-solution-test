@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Топ цитат{% endblock %}
+
+{% block content %}
+    <h2>Топ цитат</h2>
+    <div class="filters">
+        <form method="get" class="filter-form">
+            <div class="filter-group">
+                <label for="type">Тип источника:</label>
+                <select name="type" id="type" onchange="this.form.submit()">
+                    <option value="all" {% if current_type == 'all' %}selected{% endif %}>Все</option>
+                    {% for type_value, type_name in source_types %}
+                        <option value="{{ type_value }}" {% if current_type == type_value %}selected{% endif %}>
+                            {{ type_name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label for="sort">Сортировка:</label>
+                <select name="sort" id="sort" onchange="this.form.submit()">
+                    <option value="likes" {% if current_sort == 'likes' %}selected{% endif %}>По лайкам</option>
+                    <option value="views" {% if current_sort == 'views' %}selected{% endif %}>По просмотрам</option>
+                </select>
+            </div>
+
+            <button type="submit" class="apply-btn">Применить</button>
+        </form>
+    </div>
+    {% if quotes %}
+        {% for quote in quotes %}
+            <div class="quote">
+                <blockquote>{{ quote.text }}</blockquote>
+                <p class="source">— {{ quote.source.name }} ({{ quote.source.get_from_where_display }})</p>
+                <div class="stats">
+                    <span>Просмотров: {{ quote.views }}</span>
+                    <span>Лайков: {{ quote.likes }}</span>
+                    <span>Дизлайков: {{ quote.dislikes }}</span>
+                </div>
+                <p>---------------------------------------------------</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="no-quotes">
+            <p>Пока нет цитат с лайками.</p>
+        </div>
+    {% endif %}
+{% endblock %}
